@@ -1,0 +1,16 @@
+name: Require Manual Approval for Pushes to Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  manual-approval:
+    name: Manual Approval Required
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail Without Manual Approval
+        run: |
+          echo "Push to main branch requires manual approval."
+          exit 1
