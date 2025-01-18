@@ -7,10 +7,11 @@ on:
 
 jobs:
   manual-approval:
-    name: Manual Approval Required
+    name: Await Manual Approval
     runs-on: ubuntu-latest
+    environment:
+      name: main-approval
+      # The job waits for manual approval here
     steps:
-      - name: Fail Without Manual Approval
-        run: |
-          echo "Push to main branch requires manual approval."
-          exit 1
+      - name: Request Approval
+        run: echo "Awaiting manual approval for push to main branch."
