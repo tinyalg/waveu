@@ -1,0 +1,132 @@
+menu "Waveu Configuration"
+
+    choice WAVEU_DAC_CHANNEL_SELECTION
+        prompt "Select active DAC channels"
+        help
+            Choose which DAC channels will be used:
+            - CH0: GPIO25 (ESP32) / GPIO17 (ESP32-S2)
+            - CH1: GPIO26 (ESP32) / GPIO18 (ESP32-S2)
+            - Both CH0 and CH1: Both channels active simultaneously.
+
+        config WAVEU_DAC_CHANNEL_BOTH
+            bool "CH0 and CH1"
+
+        config WAVEU_DAC_CHANNEL_CH0
+            bool "CH0 only"
+            help
+                Enable only DAC Channel 0 for output (GPIO25 on ESP32, GPIO17 on ESP32-S2).
+
+        config WAVEU_DAC_CHANNEL_CH1
+            bool "CH1 only"
+            help
+                Enable only DAC Channel 1 for output (GPIO26 on ESP32, GPIO18 on ESP32-S2).
+    endchoice
+
+    config WAVEU_DEBUG_PRODUCER_GPIO
+        bool "Enable digital signal 1 for waveform data generation on GPIO"
+        default n
+        help
+            Enable this option to output a digital signal reflecting waveform data generation
+            to a GPIO pin. Useful for debugging and performance analysis.
+
+    if WAVEU_DEBUG_PRODUCER_GPIO
+
+        config WAVEU_DEBUG_PRODUCER_GPIO_NUM
+            int "GPIO pin number of the digital signal 1"
+            default 33
+            range 0 39
+            help
+                Specify the GPIO pin number to use for debugging.
+                Ensure the specified GPIO pin is valid for your board.
+
+    endif
+
+    config WAVEU_DEBUG_CONSUMER_GPIO
+        bool "Enable digital signal 2 for DAC transfer on GPIO"
+        default n
+        help
+            Enable this option to output a digital signal reflecting DAC data transfer to a GPIO pin.
+            Useful for debugging and ensuring real-time transfer correctness.
+
+
+    if WAVEU_DEBUG_CONSUMER_GPIO
+
+        config WAVEU_DEBUG_CONSUMER_GPIO_NUM
+            int "GPIO pin number of the digital signal 2"
+            default 18
+            range 0 39
+            help
+                Specify the GPIO pin number to use for debugging.
+                Ensure the specified GPIO pin is valid for your board.
+
+    endif
+
+    choice WAVEU_CHANNEL_MODE
+        prompt "Select DAC channel working mode"
+        default WAVEU_CHANNEL_MODE_SIMUL
+        help
+            Specify how the DAC channels should interpret the data in the buffer:
+            - Simultaneous mode: Both channels output identical data.
+            - Alternate mode: Channels alternate data values in the buffer, e.g.,
+            Channel 0: A, C, E; Channel 1: B, D, F.
+
+            The DAC outputs data continuously using DMA or timer-driven transfer.
+
+        config WAVEU_CHANNEL_MODE_SIMUL
+            bool "Simultaneous mode (CH0 and CH1 output identical data)"
+
+        config WAVEU_CHANNEL_MODE_ALTER
+            bool "Alternate mode (CH0 and CH1 alternate data from buffer)"
+    endchoice
+
+    config WAVEU_PRODUCER_TASK_CORE_AFFINITY
+        bool "Run waveform generation task on Core 0"
+        default n
+        help
+            Select this option to pin the waveform generation task to Core 0.
+            If disabled, the task will run on Core 1.
+
+
+    config WAVEU_PRODUCER_TASK_PRIORITY
+        int "Priority of waveform generation task"
+        range 1 20
+        default 5
+        help
+            Specify the priority of the waveform generation task. Higher values
+            indicate higher priority. Valid range: 1 (lowest) to 20 (highest).
+
+    config WAVEU_CONSUMER_TASK_CORE_AFFINITY
+        bool "Run DAC transfer task on Core 0"
+        default y
+        help
+            Select this option to pin the DAC transfer task to Core 0.
+            If disabled, the task will run on Core 1.
+
+
+    config WAVEU_CONSUMER_TASK_PRIORITY
+        int "Priority of DAC transfer task"
+        range 1 20
+        default 10
+        help
+            Specify the priority of the DAC transfer task. Higher values indicate
+            higher priority. Valid range: 1 (lowest) to 20 (highest).
+
+    choice WAVEU_LUT_TYPE
+        prompt "Select Lookup Table (LUT) data type"
+        help
+            Specify the data type used for the waveform LUT:
+            - int16_t: 16-bit signed integer.
+            - uint16_t: 16-bit unsigned integer.
+            - uint8_t: 8-bit unsigned integer (uses less memory, but lower resolution).
+
+        config WAVEU_LUT_TYPE_INT16
+            bool "int16_t (signed 16-bit)"
+
+        config WAVEU_LUT_TYPE_UINT16
+            bool "uint16_t (unsigned 16-bit)"
+
+        config WAVEU_LUT_TYPE_UINT8
+            bool "uint8_t (unsigned 8-bit)"
+    endchoice
+
+endmenu

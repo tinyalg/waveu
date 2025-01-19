@@ -1,0 +1,8 @@
+version: "0.1.0"
+description: Sawtooth Example
+
+dependencies:
+
+# The component name without namespace must match the name of the top level directory.
+  tinyalg/waveu:
+    override_path: '../../..'
