@@ -1,0 +1,11 @@
+version: "0.1.0"
+description: "Waveu: Crafting Waveforms with ESP32"
+url: "https://github.com/tinyalg/waveu"
+license: "BSD-3-Clause"
+author: "Tinyalg Systems"
+
+## IDF Component Manager Manifest File
+dependencies:
+  ## Required IDF version
+  idf:
+    version: '~5.4.0'
