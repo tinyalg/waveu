@@ -6,10 +6,10 @@ This example demonstrates basic usage to configure and control the waveform gene
 
 Before running this example, ensure you have:
 
-- An ESP32 development board.
-- ESP-IDF development environment set up (version 5.4 or later).
-- Familiarity with the ESP-IDF [DAC Constant Example](https://github.com/espressif/esp-idf/tree/v5.4/examples/peripherals/dac/dac_continuous/signal_generator).
-- An oscilloscope to visualize the waveform output.
+- An **ESP32 development board**.
+- ESP-IDF development environment set up (**version 5.4 or later**).
+- Familiarity with the ESP-IDF [DAC Continuous Signal Generator Example](https://github.com/espressif/esp-idf/tree/v5.4/examples/peripherals/dac/dac_continuous/signal_generator).
+- An **oscilloscope** to visualize the waveform output.
 
 ## Usage
 
@@ -22,8 +22,11 @@ Before running this example, ensure you have:
    ```bash
    cd waveu/examples/start_n_stop
    ```
+   Alternatively, open this directory in VSCode with the ESP-IDF extension for easier navigation and editing.
 
 3. **Run menuconfig**:
+
+   In VSCode, open the ESP-IDF Terminal.
    ```bash
    idf.py menuconfig
    ```
@@ -31,7 +34,7 @@ Before running this example, ensure you have:
    settings under `[Component config > Waveu Configuration]`:
 
    - **Select active DAC channels**:
-     - **[CH0 and CH1]**: Output to both channels.
+     - **CH0 and CH1**: Output to both channels.
      - **CH0 only**: Output to DAC Channel 0.
      - **CH1 only**: Output to DAC Channel 1.  
 
@@ -50,10 +53,20 @@ Before running this example, ensure you have:
    idf.py monitor
    ```
    You should observe messages in the console confirming the start and stop of waveform generation.
+   ```plaintext
+   I (294) Waveu-ESP32Config: waveformDataOutputTask to on core 0 at priority 10.
+   I (294) Waveu: LEN_DATA_BUFFER=16000, SAMPLE_RATE=1000000, TIMER_PERIOD=16000
+   I (294) Waveu: Started waveformDataGenerationTask on core 1 at priority 5.
+   I (304) UserWaveConfig: Frequency set to 312.50Hz
+   I (20374) UserWaveConfig: reset() called
+   I (20374) UserWaveConfig: Waveform generation finished.
+   I (20374) Waveu-ESP32Config: Stopping waveformDataOutputTask...
+   I (20374) Waveu: Stopping waveformDataGenerationTask...
+   ```
 
 6. **Connect your oscilloscope**:
    Attach the oscilloscope to the DAC output channel as configured in `menuconfig`.
-
+   Run `idf.py monitor` again to see the output.
 
 ## Example Breakdown
 
@@ -93,9 +106,6 @@ The `stop()` method gracefully halts the waveform generation, ensuring output of
 ```cpp
 waveu.stop();
 ```
-
-### 6. Observing the Results
-Connect an oscilloscope to verify the waveform output. Observe a continuous waveform at 261.63 Hz for 5 seconds. After calling stop(), the waveform generation pauses and resumes after another 5 seconds, demonstrating the basic start-stop functionality.
 
 ## Notes
 - Ensure the channel configuration is correctly set in `menuconfig`.

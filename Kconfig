@@ -1,7 +1,29 @@
 menu "Waveu Configuration"
 
+    choice WAVEU_DAC_CHANNEL_SELECTION
+        prompt "Select active DAC channels"
+        help
+            Choose which DAC channels will be used:
+            - CH0: GPIO25 (ESP32) / GPIO17 (ESP32-S2)
+            - CH1: GPIO26 (ESP32) / GPIO18 (ESP32-S2)
+            - Both CH0 and CH1: Both channels active simultaneously.
+
+        config WAVEU_DAC_CHANNEL_BOTH
+            bool "CH0 and CH1"
+
+        config WAVEU_DAC_CHANNEL_CH0
+            bool "CH0 only"
+            help
+                Enable only DAC Channel 0 for output (GPIO25 on ESP32, GPIO17 on ESP32-S2).
+
+        config WAVEU_DAC_CHANNEL_CH1
+            bool "CH1 only"
+            help
+                Enable only DAC Channel 1 for output (GPIO26 on ESP32, GPIO18 on ESP32-S2).
+    endchoice
+
     config WAVEU_DEBUG_PRODUCER_GPIO
-        bool "Enable debug output for waveform data generation on GPIO"
+        bool "Enable digital signal 1 for waveform data generation on GPIO"
         default n
         help
             Enable this option to output a digital signal reflecting waveform data generation
@@ -20,7 +42,7 @@ menu "Waveu Configuration"
     endif
 
     config WAVEU_DEBUG_CONSUMER_GPIO
-        bool "Enable debug output for DAC transfer on GPIO"
+        bool "Enable digital signal 2 for DAC transfer on GPIO"
         default n
         help
             Enable this option to output a digital signal reflecting DAC data transfer to a GPIO pin.
@@ -38,6 +60,24 @@ menu "Waveu Configuration"
                 Ensure the specified GPIO pin is valid for your board.
 
     endif
+
+    choice WAVEU_CHANNEL_MODE
+        prompt "Select DAC channel working mode"
+        default WAVEU_CHANNEL_MODE_SIMUL
+        help
+            Specify how the DAC channels should interpret the data in the buffer:
+            - Simultaneous mode: Both channels output identical data.
+            - Alternate mode: Channels alternate data values in the buffer, e.g.,
+            Channel 0: A, C, E; Channel 1: B, D, F.
+
+            The DAC outputs data continuously using DMA or timer-driven transfer.
+
+        config WAVEU_CHANNEL_MODE_SIMUL
+            bool "Simultaneous mode (CH0 and CH1 output identical data)"
+
+        config WAVEU_CHANNEL_MODE_ALTER
+            bool "Alternate mode (CH0 and CH1 alternate data from buffer)"
+    endchoice
 
     config WAVEU_PRODUCER_TASK_CORE_AFFINITY
         bool "Run waveform generation task on Core 0"
@@ -71,28 +111,6 @@ menu "Waveu Configuration"
             Specify the priority of the DAC transfer task. Higher values indicate
             higher priority. Valid range: 1 (lowest) to 20 (highest).
 
-    choice WAVEU_DAC_CHANNEL_SELECTION
-        prompt "Select active DAC channels"
-        help
-            Choose which DAC channels will be used:
-            - CH0: GPIO25 (ESP32) / GPIO17 (ESP32-S2)
-            - CH1: GPIO26 (ESP32) / GPIO18 (ESP32-S2)
-            - Both CH0 and CH1: Both channels active simultaneously.
-
-        config WAVEU_DAC_CHANNEL_BOTH
-            bool "CH0 and CH1"
-
-        config WAVEU_DAC_CHANNEL_CH0
-            bool "CH0"
-            help
-                Enable only DAC Channel 0 for output (GPIO25 on ESP32, GPIO17 on ESP32-S2).
-
-        config WAVEU_DAC_CHANNEL_CH1
-            bool "CH1"
-            help
-                Enable only DAC Channel 1 for output (GPIO26 on ESP32, GPIO18 on ESP32-S2).
-    endchoice
-
     choice WAVEU_LUT_TYPE
         prompt "Select Lookup Table (LUT) data type"
         help
@@ -109,24 +127,6 @@ menu "Waveu Configuration"
 
         config WAVEU_LUT_TYPE_UINT8
             bool "uint8_t (unsigned 8-bit)"
-    endchoice
-
-    choice WAVEU_CHANNEL_MODE
-        prompt "Select DAC channel working mode"
-        default WAVEU_CHANNEL_MODE_SIMUL
-        help
-            Specify how the DAC channels should interpret the data in the buffer:
-            - Simultaneous mode: Both channels output identical data.
-            - Alternate mode: Channels alternate data values in the buffer, e.g.,
-            Channel 0: A, C, E; Channel 1: B, D, F.
-
-            The DAC outputs data continuously using DMA or timer-driven transfer.
-
-        config WAVEU_CHANNEL_MODE_SIMUL
-            bool "Simultaneous mode (CH0 and CH1 output identical data)"
-
-        config WAVEU_CHANNEL_MODE_ALTER
-            bool "Alternate mode (CH0 and CH1 alternate data from buffer)"
     endchoice
 
 endmenu

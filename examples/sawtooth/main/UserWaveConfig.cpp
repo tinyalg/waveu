@@ -56,7 +56,7 @@ public:
         }
 
         // Return the voltage value for the sample.
-        return digi_val;
+        return (uint8_t)digi_val;
     }
 
     void reset() override {

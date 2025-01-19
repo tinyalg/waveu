@@ -22,8 +22,11 @@ Before running this example, ensure you have:
    ```bash
    cd waveu/examples/sawtooth
    ```
+   Alternatively, open this directory in VSCode with the ESP-IDF extension for easier navigation and editing.
 
 3. **Run menuconfig**:
+
+   In VSCode, open the ESP-IDF Terminal.
    ```bash
    idf.py menuconfig
    ```
@@ -31,7 +34,7 @@ Before running this example, ensure you have:
    settings under `[Component config > Waveu Configuration]`:
 
    - **Select active DAC channels**:
-     - **[CH0 and CH1]**: Output to both channels.
+     - **CH0 and CH1**: Output to both channels.
      - **CH0 only**: Output to DAC Channel 0.
      - **CH1 only**: Output to DAC Channel 1.  
 
@@ -44,7 +47,13 @@ Before running this example, ensure you have:
    ```bash
    idf.py monitor
    ```
-   You should observe messages in the console confirming the start and stop of waveform generation.
+   You should observe messages in the console confirming the start of waveform generation.
+   ```plaintext
+   I (291) UserWaveConfig: Frequency=200.00
+   I (291) Waveu-ESP32Config: waveformDataOutputTask to on core 0 at priority 10.
+   I (291) Waveu: LEN_DATA_BUFFER=16000, SAMPLE_RATE=1000000, TIMER_PERIOD=16000
+   I (301) Waveu: Started waveformDataGenerationTask on core 1 at priority 5.
+   ```
 
 6. **Connect your oscilloscope**:
    Attach the oscilloscope to the DAC output channel as configured in `menuconfig`.
@@ -96,7 +105,7 @@ uint8_t digi_val = (currentPhase >> (PhaseGenerator::N_BITS - 8)) & 0xFF;
 #### 2.4 Return the Voltage Value
 Return the computed voltage value.
 ```cpp
-return digi_val;
+return (uint8_t)digi_val;
 ```
 
 #### 2.5 Optional Triangular Wave

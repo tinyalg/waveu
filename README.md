@@ -4,15 +4,15 @@ Waveu empowers developers to design, configure, and experiment with waveforms us
 
 ## Quick Start
 
-Waveu's example code can be compiled and run on your ESP32. Simply connect the DAC pin to an oscilloscope, and you're ready to generate diverse waveforms! Explore the examples in the [examples directory](https://github.com/tinyalg/waveu/tree/main/examples):
+Waveu's example code can be compiled and run on your ESP32. Simply connect the DAC pin to an oscilloscope, and you're ready to generate diverse waveforms! Explore the examples in the [examples directory](examples):
 
-- **[Sawtooth Wave](https://github.com/tinyalg/waveu/tree/main/examples/sawtooth)**  
+- **[Sawtooth Wave](examples/sawtooth)**  
   Demonstrates the `PhaseGenerator` class for generating a sawtooth waveform.
 
-- **[Triangular Wave](https://github.com/tinyalg/waveu/tree/main/examples/triangular)**  
+- **[Triangular Wave](examples/triangular)**  
   Learn how to use a Lookup Table (LUT) to create triangular waveforms.
 
-- **[Start and Stop](https://github.com/tinyalg/waveu/tree/main/examples/start_n_stop)**  
+- **[Start and Stop](examples/start_n_stop)**  
   A basic example showcasing how to configure and control waveform generation.
 
 
@@ -30,7 +30,7 @@ To use Waveu, you'll need:
 Before diving into Waveu, ensure you have:
 
 1. **ESP-IDF setup**  
-   Install the [ESP-IDF](https://github.com/espressif/esp-idf) version 5.4 or later.
+   Install the [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html) version 5.4 or later.
 
 2. **Familiarity with DAC examples**  
    We recommend reviewing the ESP-IDF example:  
