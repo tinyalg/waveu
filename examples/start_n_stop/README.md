@@ -38,7 +38,7 @@ Before running this example, ensure you have:
      - **CH0 only**: Output to DAC Channel 0.
      - **CH1 only**: Output to DAC Channel 1.  
 
-   To reproduce the figure in [A Hands-On Approach to Designing Waveforms with Microcontrollers – Your Spare Oscilloscope in Action](https://doi.org/10.5281/zenodo.14651345), ensure the following options are enabled:
+   To reproduce the figure in [A Hands-On Approach to Designing Waveforms with Microcontrollers – Your Spare Oscilloscope in Action](https://doi.org/10.6084/m9.figshare.28236308), ensure the following options are enabled:
    - **Enable debug output for waveform data generation on GPIO**.
    - **Enable debug output for DAC transfer on GPIO**.
    - **Select DAC channel working mode** as Alternate mode (CH0 and CH1 alternate data from buffer)

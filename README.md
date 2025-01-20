@@ -55,7 +55,7 @@ Before diving into Waveu, ensure you have:
 ## Learn the Vision
 
 Waveu is built on the vision of making waveform generation accessible and enjoyable. Learn how the project transforms an ESP32 and an oscilloscope into a powerful tool for exploration and learning:  
-[A Hands-On Approach to Designing Waveforms with Microcontrollers – Your Spare Oscilloscope in Action](https://doi.org/10.5281/zenodo.14651345).
+[A Hands-On Approach to Designing Waveforms with Microcontrollers – Your Spare Oscilloscope in Action](https://doi.org/10.6084/m9.figshare.28236308).
 
 
 ## Troubleshooting
