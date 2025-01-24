@@ -15,6 +15,9 @@ Waveu's example code can be compiled and run on your ESP32. Simply connect the D
 - **[Start and Stop](examples/start_n_stop)**  
   A basic example showcasing how to configure and control waveform generation.
 
+### Additional Examples
+
+For more waveform generation examples, check out the [waveu-ideas repository](https://github.com/tinyalg/waveu-ideas).
 
 ## Hardware Requirements
 
