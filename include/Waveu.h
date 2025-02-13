@@ -172,13 +172,6 @@ private:
     State currentState = State::Idle;
 
     /**
-     * @brief Internal buffer for received data.
-     * 
-     * This pointer holds data received or processed by the waveform generator.
-     */
-    uint8_t *receivedData = nullptr;
-
-    /**
      * @brief Tracks the elapsed time since the generator started.
      * 
      * This value is used for timing-related calculations during waveform generation.

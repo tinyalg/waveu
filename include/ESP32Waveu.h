@@ -11,6 +11,7 @@ using ESP32Waveu = Waveu<ESP32Config, WaveConfig>;
 
 }  // namespace tinyalg::waveu
 
+#include "DataTypes.h"
 #include "LUTHelper.h"
 #include "PhaseGenerator.h"
 #include "WaveConfig.h"

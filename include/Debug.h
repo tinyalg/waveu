@@ -1,5 +1,6 @@
 #pragma once
 
+#include "driver/gpio.h"
 #include "sdkconfig.h"
 
 #ifdef CONFIG_WAVEU_DEBUG_PRODUCER_GPIO

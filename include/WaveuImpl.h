@@ -135,21 +135,31 @@ void Waveu<BoardConfig, WaveConfig, Wave2Config>::waveformDataGenerationTask(voi
 #endif
 #ifdef CONFIG_WAVEU_CHANNEL_MODE_ALTER
         int nSamples = BoardConfig::LEN_DATA_BUFFER / 2; // Number of samples per milisecond
+  #ifdef CONFIG_WAVEU_DATA_SINK_UDP
+        nSamples /= 2;
+  #endif
 #endif
 
         if (receivedData.data) {
-            uint8_t *ptr = BoardConfig::pingDataBuffer;
+            sample_type_t *ptr = BoardConfig::pingDataBuffer.data;
             // Wait for semaphore to ensure the buffer is ready
             if (xSemaphoreTake(tinyalg::waveu::pingBufferSemaphore, portMAX_DELAY) == pdTRUE) {
 
                 DEBUG_PRODUCER_GPIO_SET_LEVEL(1);
 
                 for (int i = 0; i < nSamples; i++) {
-                    data_buf_type_t outputValue = instance->chan.nextSample();
+                    sample_type_t outputValue = instance->chan.nextSample();
                     *ptr++ = outputValue;  // Channel 0 data
 #ifdef CONFIG_WAVEU_CHANNEL_MODE_ALTER
                     outputValue = instance->chan.nextSampleB();
                     *ptr++ = outputValue;  // Channel 1 data
+  #ifdef CONFIG_WAVEU_DATA_SINK_UDP
+                    outputValue = instance->chan.nextSampleC();
+                    *ptr++ = outputValue;  // Channel 1 data
+
+                    outputValue = instance->chan.nextSampleD();
+                    *ptr++ = outputValue;  // Channel 1 data
+  #endif
 #endif
                 }
 
@@ -159,7 +169,7 @@ void Waveu<BoardConfig, WaveConfig, Wave2Config>::waveformDataGenerationTask(voi
                 xSemaphoreGive(tinyalg::waveu::pingBufferSemaphore);
             }
         } else {
-            uint8_t *ptr = BoardConfig::pongDataBuffer;
+            sample_type_t *ptr = BoardConfig::pongDataBuffer.data;
 
             // Wait for semaphore to ensure the buffer is ready
             if (xSemaphoreTake(tinyalg::waveu::pongBufferSemaphore, portMAX_DELAY) == pdTRUE) {
@@ -167,11 +177,18 @@ void Waveu<BoardConfig, WaveConfig, Wave2Config>::waveformDataGenerationTask(voi
                 DEBUG_PRODUCER_GPIO_SET_LEVEL(1);
 
                 for (int i = 0; i < nSamples; i++) {
-                    data_buf_type_t outputValue = instance->chan.nextSample();
+                    sample_type_t outputValue = instance->chan.nextSample();
                     *ptr++ = outputValue;  // Channel 0 data
 #ifdef CONFIG_WAVEU_CHANNEL_MODE_ALTER
                     outputValue = instance->chan.nextSampleB();
                     *ptr++ = outputValue;  // Channel 1 data
+  #ifdef CONFIG_WAVEU_DATA_SINK_UDP
+                    outputValue = instance->chan.nextSampleC();
+                    *ptr++ = outputValue;  // Channel 1 data
+
+                    outputValue = instance->chan.nextSampleD();
+                    *ptr++ = outputValue;  // Channel 1 data
+  #endif
 #endif
                 }
 

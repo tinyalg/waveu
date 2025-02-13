@@ -2,9 +2,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-
-#include "driver/dac_continuous.h"
 #include "driver/gpio.h"
+
 #include "esp_timer.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
@@ -13,126 +12,39 @@
 #include "DataTypes.h"
 #include "ESP32Config.h"
 #include "Queues.h"
-#include "Semaphores.h"
 #include "DataTypes.h"
-#include "Debug.h"
+#include "DataOutputTask.h"
 
 namespace tinyalg::waveu {
 
 atomic_bool timer_callback_stop_request = false;
 atomic_bool discard_buffer_before_stop = false;
 
-static data_transfer_task_args_t data_transfer_task_args;
-static void waveformDataOutputTask(void *args) {
-    data_transfer_task_args_t *task_args = (data_transfer_task_args_t*)args;
-
-    while (1) {
-        data_output_msg_type_t receivedData;
-        // Wait for notification, then calculate the next buffer.
-        xQueueReceive(dataOutputQueue, &receivedData, portMAX_DELAY);
-
-        // When triggered, delete this task itself.
-        if (receivedData.terminationTrigger) {
-            ESP_LOGI(ESP32Config::TAG, "Stopping waveformDataOutputTask...");
-            vTaskDelete(NULL);
-        }
-
-        if (receivedData.data) {
-            // Wait for the producer to fill the current buffer
-            if (xSemaphoreTake(pingBufferSemaphore, portMAX_DELAY) == pdTRUE) {
-                DEBUG_CONSUMER_GPIO_SET_LEVEL(1);
-
-                size_t bytes_loaded;
-                ESP_ERROR_CHECK(dac_continuous_write(task_args->cont_handle,
-                                                    (uint8_t *)ESP32Config::pingDataBuffer,
-                                                    ESP32Config::LEN_DATA_BUFFER,
-                                                    &bytes_loaded,
-                                                    task_args->timeout_ms));
-                if (bytes_loaded != ESP32Config::LEN_DATA_BUFFER) {
-                    ESP_LOGE(ESP32Config::TAG, "pingDataBuffer loaded immaturely: bytes_loaded=%d", bytes_loaded);
-                }
-
-                DEBUG_CONSUMER_GPIO_SET_LEVEL(0);
-                // Notify the producer that the current buffer is ready for refill
-                xSemaphoreGive(pingBufferSemaphore);
-            }
-        } else {
-            // Wait for the producer to fill the current buffer
-            if (xSemaphoreTake(pongBufferSemaphore, portMAX_DELAY) == pdTRUE) {
-
-                DEBUG_CONSUMER_GPIO_SET_LEVEL(1);
-
-                size_t bytes_loaded;        
-                ESP_ERROR_CHECK(dac_continuous_write(task_args->cont_handle,
-                                                    (uint8_t *)ESP32Config::pongDataBuffer,
-                                                    ESP32Config::LEN_DATA_BUFFER,
-                                                    &bytes_loaded,
-                                                    task_args->timeout_ms));
-                if (bytes_loaded != ESP32Config::LEN_DATA_BUFFER) {
-                    ESP_LOGE(ESP32Config::TAG, "pongDataBuffer loaded immaturely: bytes_loaded=%d", bytes_loaded);
-                }
-
-                DEBUG_CONSUMER_GPIO_SET_LEVEL(0);
-                // Notify the producer that the current buffer is ready for refill
-                xSemaphoreGive(pongBufferSemaphore);
-            }
-        }
-    } // while (1)
-}
-
 esp_timer_handle_t ESP32Config::timer_handle = nullptr;
 
 const char* ESP32Config::TAG = "Waveu-ESP32Config";
 
-data_buf_type_t ESP32Config::pingDataBuffer[LEN_DATA_BUFFER] = { 0 }; 
-data_buf_type_t ESP32Config::pongDataBuffer[LEN_DATA_BUFFER] = { 0 };
+ESP32Config::data_packet_type_t ESP32Config::pingDataBuffer = {
+    .packet_count = 0,                      // Explicit value
+    .timestamp = 0,                         // Explicit value
+    .data = {0}                             // Zero-initialize the entire data array
+};
+ESP32Config::data_packet_type_t ESP32Config::pongDataBuffer = {
+    .packet_count = 0,                      // Explicit value
+    .timestamp = 0,                         // Explicit value
+    .data = {0}                             // Zero-initialize the entire data array
+};
 
-ESP32Config::timer_callback_args_t ESP32Config::timer_callback_args = {};
+//ESP32Config::timer_callback_args_t ESP32Config::timer_callback_args = {};
 
 ESP32Config::ESP32Config() {}
 
 ESP32Config::~ESP32Config() {
     ESP_LOGD(TAG, "Running the destructor ~ESP32Config()...");
-    ESP_ERROR_CHECK_WITHOUT_ABORT(dac_continuous_disable(cont_handle));
-    ESP_ERROR_CHECK_WITHOUT_ABORT(dac_continuous_del_channels(cont_handle));
 }
 
 // Implementation of ESP32-specific DAC initialization
 void ESP32Config::initializeDac() {
-    // ESP32-specific DAC initialization code
-    dac_continuous_config_t cont_cfg = {
-
-#ifdef CONFIG_WAVEU_DAC_CHANNEL_BOTH
-        .chan_mask = DAC_CHANNEL_MASK_ALL,
-#elif  CONFIG_WAVEU_DAC_CHANNEL_CH0
-        .chan_mask = DAC_CHANNEL_MASK_CH0,
-#elif  CONFIG_WAVEU_DAC_CHANNEL_CH1
-        .chan_mask = DAC_CHANNEL_MASK_CH1,
-#endif
-        .desc_num = ESP32Config::DAC_DMA_DESC_NUM,
-        .buf_size = ESP32Config::DAC_DMA_BUF_SIZE,
-        .freq_hz = ESP32Config::SAMPLE_RATE,
-        .offset = 0,
-        .clk_src = DAC_DIGI_CLK_SRC_DEFAULT,     // If the frequency is out of range, try 'DAC_DIGI_CLK_SRC_APLL'
-        /* Assume the data in buffer is 'A B C D E F'
-            * DAC_CHANNEL_MODE_SIMUL:
-            *      - channel 0: A B C D E F
-            *      - channel 1: A B C D E F
-            * DAC_CHANNEL_MODE_ALTER:
-            *      - channel 0: A C E
-            *      - channel 1: B D F
-            */
-#ifdef CONFIG_WAVEU_CHANNEL_MODE_SIMUL
-        .chan_mode = DAC_CHANNEL_MODE_SIMUL,
-#elif  CONFIG_WAVEU_CHANNEL_MODE_ALTER
-        .chan_mode = DAC_CHANNEL_MODE_ALTER,
-#endif
-    };
-
-    // Allocate continuous channel
-    ESP_ERROR_CHECK(dac_continuous_new_channels(&cont_cfg, &cont_handle));
-    //Enable the channels in the group
-    ESP_ERROR_CHECK(dac_continuous_enable(cont_handle));
 }
 
 // Implementation of ESP32-specific GPIO setup
@@ -172,14 +84,10 @@ void ESP32Config::setupGpio() {
 /// @brief 
 void ESP32Config::prepareTimer() {
 
-    timer_callback_args.cont_handle = cont_handle;
-    timer_callback_args.sampleRate = 42;
-    timer_callback_args.lenDataBuffer = LEN_DATA_BUFFER;
-
     // Create & start a timer.
     esp_timer_create_args_t timer_args = {
         .callback = &ESP32Config::timerCallback,
-        .arg = &timer_callback_args,
+        .arg = nullptr,
         .dispatch_method = ESP_TIMER_TASK,
         .name = "DAC Timer",
         .skip_unhandled_events = false,
@@ -188,9 +96,6 @@ void ESP32Config::prepareTimer() {
     ESP_ERROR_CHECK(esp_timer_create(&timer_args, &ESP32Config::timer_handle));
 
     // Invoke the consumer task.
-    int foever = -1;
-    data_transfer_task_args.timeout_ms = foever;
-    data_transfer_task_args.cont_handle = cont_handle;
     UBaseType_t uxPriority = CONFIG_WAVEU_CONSUMER_TASK_PRIORITY;
     BaseType_t xCoreID = 1;
 #ifdef CONFIG_WAVEU_CONSUMER_TASK_CORE_AFFINITY

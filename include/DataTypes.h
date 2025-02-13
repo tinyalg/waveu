@@ -24,6 +24,7 @@ enum LUTSize {
 #endif
 
 typedef uint8_t data_buf_type_t;
+typedef uint8_t sample_type_t;
 
 typedef struct {
     bool data;

@@ -1,5 +1,19 @@
 menu "Waveu Configuration"
 
+    choice WAVEU_DATA_SINK_SELECTION
+        prompt "Select data sink"
+        help
+            Choose which data sink:
+            - UDP
+            - DAC
+
+        config WAVEU_DATA_SINK_UDP
+            bool "Send over UDP"
+
+        config WAVEU_DATA_SINK_DAC
+            bool "Write to DAC"
+    endchoice
+
     choice WAVEU_DAC_CHANNEL_SELECTION
         prompt "Select active DAC channels"
         help

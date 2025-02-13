@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DataTypes.h"
 #include "WaveConfigArgs.h"
 
 namespace tinyalg::waveu {
@@ -53,7 +54,7 @@ public:
      * 
      * @return The next waveform sample as an 8-bit unsigned integer.
      */
-    virtual uint8_t nextSample() = 0;
+    virtual sample_type_t nextSample() = 0;
 
 #ifdef CONFIG_WAVEU_CHANNEL_MODE_ALTER
     /**
@@ -65,7 +66,30 @@ public:
      * 
      * @return The next waveform sample as an 8-bit unsigned integer.
      */
-    virtual uint8_t nextSampleB() = 0;
+    virtual sample_type_t nextSampleB() = 0;
+  #ifdef CONFIG_WAVEU_DATA_SINK_UDP
+    /**
+     * @brief Retrieves the next sample of the waveform.
+     * 
+     * This method is called to generate and return the next sample value
+     * of the waveform. The value is typically normalized to fit within
+     * 8 bits.
+     * 
+     * @return The next waveform sample as an 8-bit unsigned integer.
+     */
+    virtual sample_type_t nextSampleC() = 0;
+
+        /**
+     * @brief Retrieves the next sample of the waveform.
+     * 
+     * This method is called to generate and return the next sample value
+     * of the waveform. The value is typically normalized to fit within
+     * 8 bits.
+     * 
+     * @return The next waveform sample as an 8-bit unsigned integer.
+     */
+    virtual sample_type_t nextSampleD() = 0;
+  #endif
 #endif
 
     /**

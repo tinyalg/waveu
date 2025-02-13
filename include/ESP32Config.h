@@ -14,41 +14,42 @@
 namespace tinyalg::waveu {
 
 typedef struct {
-    dac_continuous_handle_t cont_handle;
     int timeout_ms;
 } data_transfer_task_args_t;
 
 // Example: ESP32Config specialization for ESP32
 class ESP32Config : public BoardConfigInterface {
 public:
+    // for DAC
+#ifdef CONFIG_WAVEU_DATA_SINK_DAC
     static constexpr uint32_t SAMPLE_RATE = 1000 * KILO; // Sa/s
-    static constexpr uint32_t TIMER_PERIOD = 16 * KILO; // us
-    static constexpr int DAC_DMA_DESC_NUM = 18;
-    static constexpr int DAC_DMA_BUF_SIZE = 4000;
-
+    static constexpr uint32_t TIMER_PERIOD = 16 * KILO; // us; for DAC
+#else /* CONFIG_WAVEU_DATA_SINK_UDP */
+    // for UDP
+    static constexpr uint32_t SAMPLE_RATE = 96 * KILO; // Sa/s
+    static constexpr uint32_t TIMER_PERIOD = 16 * KILO; // us; for UDP
+#endif
     static constexpr size_t LEN_DATA_BUFFER =
                     (SAMPLE_RATE / KILO) * (TIMER_PERIOD / KILO)
 #ifdef CONFIG_WAVEU_CHANNEL_MODE_ALTER
                   * NUM_CHANNELS
+  #ifdef CONFIG_WAVEU_DATA_SINK_UDP
+                  * 2
+  #endif
 #endif
-                  * sizeof(uint8_t);    // Length of each buffer
-
-    static data_buf_type_t pingDataBuffer[LEN_DATA_BUFFER];
-    static data_buf_type_t pongDataBuffer[LEN_DATA_BUFFER];
-
-private:
-
-    dac_continuous_handle_t cont_handle;
-
-    void initSemaphore();
+                  * sizeof(sample_type_t);    // Length of each buffer
 
     typedef struct {
-        dac_continuous_handle_t cont_handle;
-        uint32_t sampleRate;
-        uint32_t lenDataBuffer;
-    } timer_callback_args_t;
+        uint32_t packet_count;  // Simple counter (increments per packet)
+        uint64_t timestamp;  // Microsecond timestamp
+        sample_type_t data[LEN_DATA_BUFFER]; // Actual waveform data
+    } __attribute__((packed)) data_packet_type_t;
 
-    static timer_callback_args_t timer_callback_args;
+    static data_packet_type_t pingDataBuffer;
+    static data_packet_type_t pongDataBuffer;
+
+private:
+    void initSemaphore();
 
 public:
     static const char* TAG;
